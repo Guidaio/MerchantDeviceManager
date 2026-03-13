@@ -28,8 +28,8 @@ MerchantDeviceManager is an MVC portal for managing **merchants** and **POS devi
 | Project | Description |
 |---------|-------------|
 | **MerchantDeviceManager.Web** | ASP.NET Core MVC (.NET 8). Portal UI. |
-| **MerchantDeviceManager.Domain** | Domain entities and business logic (to be added). |
-| **MerchantDeviceManager.Infrastructure** | EF Core, Redis, persistence (to be added). |
+| **MerchantDeviceManager.Domain** | Domain entities (Merchant, Device) and enums. |
+| **MerchantDeviceManager.Infrastructure** | EF Core SQLite, DbContext, entity configurations. |
 
 ## Prerequisites
 
@@ -41,8 +41,17 @@ MerchantDeviceManager is an MVC portal for managing **merchants** and **POS devi
 dotnet run --project src/MerchantDeviceManager.Web
 ```
 
+## Domain model
+
+| Entity | Description |
+|--------|-------------|
+| **Merchant** | Tenant: Id, Name, Document (CNPJ/CPF), Status (Active/Inactive/Suspended), CreatedAtUtc |
+| **Device** | POS terminal: Id, MerchantId, SerialNumber, Model, Status (Active/Inactive/Blocked), CreatedAtUtc |
+
+SerialNumber is unique per merchant. Document is unique globally.
+
 ## Status
 
-**Scaffold complete.** Next steps: domain model (Merchant, Device), multi-tenant setup, roles.
+**Etapa 2 complete.** Domain model (Merchant, Device), EF Core, SQLite. Next: multi-tenant setup, roles.
 
 See `portfolio-notes.md` for the roadmap and execution history.
