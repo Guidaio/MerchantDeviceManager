@@ -1,0 +1,41 @@
+@model IEnumerable<MerchantDeviceManager.Web.Models.DeviceListModel>
+@{
+    ViewData["Title"] = "Devices";
+    var merchantName = ViewData["MerchantName"] as string ?? "Merchant";
+}
+
+<h1>Devices — @merchantName</h1>
+<p class="text-muted">Devices filtered by current tenant. You only see data for the selected merchant.</p>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a asp-action="Create" class="btn btn-primary">Add Device</a>
+    <form asp-controller="Devices" asp-action="SwitchTenant" method="post" class="d-inline">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-outline-secondary">Switch Merchant</button>
+    </form>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Serial Number</th>
+            <th>Model</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var d in Model)
+        {
+            <tr>
+                <td>@d.SerialNumber</td>
+                <td>@d.Model</td>
+                <td><span class="badge bg-secondary">@d.Status</span></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (!Model.Any())
+{
+    <p class="text-muted">No devices yet. <a asp-action="Create">Add one</a>.</p>
+}

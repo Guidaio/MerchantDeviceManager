@@ -41,6 +41,15 @@ MerchantDeviceManager is an MVC portal for managing **merchants** and **POS devi
 dotnet run --project src/MerchantDeviceManager.Web
 ```
 
+Open http://localhost:5000 (or the port shown). Select a merchant (tenant), then manage devices. Use "Switch Merchant" to change tenant.
+
+## Multi-tenant (Etapa 3)
+
+- **Tenant resolution:** Header `X-Tenant-Id` or cookie `TenantId` (set when selecting merchant).
+- **ITenantContext:** Scoped service provides `CurrentMerchantId` for the request.
+- **Data filter:** DevicesController filters by `MerchantId = CurrentMerchantId`; each operator sees only their merchant's data.
+- **TenantResolutionMiddleware:** Validates merchant exists before setting tenant.
+
 ## Domain model
 
 | Entity | Description |
@@ -52,6 +61,6 @@ SerialNumber is unique per merchant. Document is unique globally.
 
 ## Status
 
-**Etapa 2 complete.** Domain model (Merchant, Device), EF Core, SQLite. Next: multi-tenant setup, roles.
+**Etapa 3 complete.** Multi-tenant setup (tenant resolution, data filter by MerchantId). Next: roles (admin, support, viewer).
 
 See `portfolio-notes.md` for the roadmap and execution history.
