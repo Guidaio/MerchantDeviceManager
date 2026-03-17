@@ -26,13 +26,19 @@ public class MerchantsController : Controller
     }
 
     /// <summary>
-    /// Select tenant and redirect to devices.
+    /// Select tenant and role, then redirect to devices.
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult Select(Guid merchantId)
+    public IActionResult Select(Guid merchantId, Domain.Entities.OperatorRole role)
     {
         Response.Cookies.Append("TenantId", merchantId.ToString(), new CookieOptions
+        {
+            HttpOnly = true,
+            SameSite = SameSiteMode.Lax,
+            Path = "/"
+        });
+        Response.Cookies.Append("Role", role.ToString(), new CookieOptions
         {
             HttpOnly = true,
             SameSite = SameSiteMode.Lax,

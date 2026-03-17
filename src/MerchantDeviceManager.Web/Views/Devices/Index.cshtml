@@ -2,13 +2,22 @@
 @{
     ViewData["Title"] = "Devices";
     var merchantName = ViewData["MerchantName"] as string ?? "Merchant";
+    var canCreate = ViewData["CanCreate"] as bool? ?? false;
+    var canDelete = ViewData["CanDelete"] as bool? ?? false;
 }
 
 <h1>Devices — @merchantName</h1>
-<p class="text-muted">Devices filtered by current tenant. You only see data for the selected merchant.</p>
+<p class="text-muted">Devices filtered by current tenant. Role-based: Admin (full), Support (create), Viewer (read-only).</p>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <a asp-action="Create" class="btn btn-primary">Add Device</a>
+    @if (canCreate)
+    {
+        <a asp-action="Create" class="btn btn-primary">Add Device</a>
+    }
+    else
+    {
+        <span class="text-muted">(Viewer: read-only)</span>
+    }
     <form asp-controller="Devices" asp-action="SwitchTenant" method="post" class="d-inline">
         @Html.AntiForgeryToken()
         <button type="submit" class="btn btn-outline-secondary">Switch Merchant</button>
@@ -37,5 +46,11 @@
 
 @if (!Model.Any())
 {
-    <p class="text-muted">No devices yet. <a asp-action="Create">Add one</a>.</p>
+    <p class="text-muted">
+        No devices yet.
+        @if (canCreate)
+        {
+            <a asp-action="Create">Add one</a>
+        }
+    </p>
 }

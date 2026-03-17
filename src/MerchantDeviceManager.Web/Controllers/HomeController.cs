@@ -23,6 +23,13 @@ public class HomeController : Controller
         return View();
     }
 
+    public IActionResult Forbidden(string? message = null)
+    {
+        ViewData["Message"] = message ?? "You do not have permission to perform this action.";
+        Response.StatusCode = 403;
+        return View();
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

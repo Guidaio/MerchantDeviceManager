@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MerchantDeviceManager.Domain.Entities;
 using MerchantDeviceManager.Infrastructure.Persistence;
+using MerchantDeviceManager.Web.Authorization;
 using MerchantDeviceManager.Web.Models;
 using MerchantDeviceManager.Web.Services;
 
@@ -11,11 +12,13 @@ public class DevicesController : Controller
 {
     private readonly MerchantDeviceDbContext _db;
     private readonly ITenantContext _tenant;
+    private readonly IRoleContext _role;
 
-    public DevicesController(MerchantDeviceDbContext db, ITenantContext tenant)
+    public DevicesController(MerchantDeviceDbContext db, ITenantContext tenant, IRoleContext role)
     {
         _db = db;
         _tenant = tenant;
+        _role = role;
     }
 
     /// <summary>
@@ -36,11 +39,14 @@ public class DevicesController : Controller
 
         var merchant = await _db.Merchants.AsNoTracking().FirstAsync(m => m.Id == merchantId, ct);
         ViewData["MerchantName"] = merchant.Name;
+        ViewData["CanCreate"] = _role.CanCreate;
+        ViewData["CanDelete"] = _role.CanDelete;
 
         return View(devices);
     }
 
     [HttpGet]
+    [RequireRole(OperatorRole.Admin, OperatorRole.Support)]
     public async Task<IActionResult> Create(CancellationToken ct)
     {
         if (!_tenant.HasTenant)
@@ -54,6 +60,7 @@ public class DevicesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [RequireRole(OperatorRole.Admin, OperatorRole.Support)]
     public async Task<IActionResult> Create(CreateDeviceModel createModel, CancellationToken ct)
     {
         if (!_tenant.HasTenant)
@@ -89,6 +96,7 @@ public class DevicesController : Controller
     public IActionResult SwitchTenant()
     {
         Response.Cookies.Delete("TenantId");
+        Response.Cookies.Delete("Role");
         return RedirectToAction(nameof(MerchantsController.Index), "Merchants");
     }
 }

@@ -50,6 +50,13 @@ Open http://localhost:5000 (or the port shown). Select a merchant (tenant), then
 - **Data filter:** DevicesController filters by `MerchantId = CurrentMerchantId`; each operator sees only their merchant's data.
 - **TenantResolutionMiddleware:** Validates merchant exists before setting tenant.
 
+## Role-based access (Etapa 4)
+
+- **Roles:** Admin (full access), Support (create/view), Viewer (read-only).
+- **Role resolution:** Header `X-Role` or cookie `Role`; selected when choosing merchant.
+- **IRoleContext:** Scoped service provides `CurrentRole`, `CanCreate`, `CanDelete`.
+- **RequireRoleAttribute:** Authorization filter; Create requires Admin or Support; Viewer gets 403 on create.
+
 ## Domain model
 
 | Entity | Description |
@@ -61,6 +68,6 @@ SerialNumber is unique per merchant. Document is unique globally.
 
 ## Status
 
-**Etapa 3 complete.** Multi-tenant setup (tenant resolution, data filter by MerchantId). Next: roles (admin, support, viewer).
+**Etapa 4 complete.** Role-based access (Admin, Support, Viewer). Next: Redis cache.
 
 See `portfolio-notes.md` for the roadmap and execution history.

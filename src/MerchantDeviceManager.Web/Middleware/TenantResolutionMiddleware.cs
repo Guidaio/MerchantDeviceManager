@@ -1,17 +1,21 @@
+using MerchantDeviceManager.Domain.Entities;
 using MerchantDeviceManager.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace MerchantDeviceManager.Web.Middleware;
 
 /// <summary>
-/// Resolves tenant from X-Tenant-Id header or TenantId cookie.
-/// Validates merchant exists and sets HttpContext.Items for ITenantContext.
+/// Resolves tenant and role from headers/cookies.
+/// Validates merchant exists and sets HttpContext.Items for ITenantContext and IRoleContext.
 /// </summary>
 public class TenantResolutionMiddleware
 {
-    private const string HeaderName = "X-Tenant-Id";
-    private const string CookieName = "TenantId";
-    private const string ItemsKey = "CurrentTenantId";
+    private const string TenantHeaderName = "X-Tenant-Id";
+    private const string RoleHeaderName = "X-Role";
+    private const string TenantCookieName = "TenantId";
+    private const string RoleCookieName = "Role";
+    private const string TenantItemsKey = "CurrentTenantId";
+    private const string RoleItemsKey = "CurrentRole";
 
     private readonly RequestDelegate _next;
 
@@ -25,8 +29,8 @@ public class TenantResolutionMiddleware
             var exists = await db.Merchants.AnyAsync(m => m.Id == tenantId.Value);
             if (exists)
             {
-                context.Items[ItemsKey] = tenantId.Value;
-                context.Response.Cookies.Append(CookieName, tenantId.Value.ToString(), new CookieOptions
+                context.Items[TenantItemsKey] = tenantId.Value;
+                context.Response.Cookies.Append(TenantCookieName, tenantId.Value.ToString(), new CookieOptions
                 {
                     HttpOnly = true,
                     SameSite = SameSiteMode.Lax,
@@ -35,16 +39,40 @@ public class TenantResolutionMiddleware
             }
         }
 
+        var role = GetRoleFromRequest(context);
+        if (role.HasValue)
+        {
+            context.Items[RoleItemsKey] = role.Value;
+            context.Response.Cookies.Append(RoleCookieName, role.Value.ToString(), new CookieOptions
+            {
+                HttpOnly = true,
+                SameSite = SameSiteMode.Lax,
+                Path = "/"
+            });
+        }
+
         await _next(context);
     }
 
     private static Guid? GetTenantIdFromRequest(HttpContext context)
     {
-        var header = context.Request.Headers[HeaderName].FirstOrDefault();
+        var header = context.Request.Headers[TenantHeaderName].FirstOrDefault();
         if (!string.IsNullOrEmpty(header) && Guid.TryParse(header, out var fromHeader))
             return fromHeader;
 
-        if (context.Request.Cookies.TryGetValue(CookieName, out var cookie) && Guid.TryParse(cookie, out var fromCookie))
+        if (context.Request.Cookies.TryGetValue(TenantCookieName, out var cookie) && Guid.TryParse(cookie, out var fromCookie))
+            return fromCookie;
+
+        return null;
+    }
+
+    private static OperatorRole? GetRoleFromRequest(HttpContext context)
+    {
+        var header = context.Request.Headers[RoleHeaderName].FirstOrDefault();
+        if (!string.IsNullOrEmpty(header) && Enum.TryParse<OperatorRole>(header, true, out var fromHeader))
+            return fromHeader;
+
+        if (context.Request.Cookies.TryGetValue(RoleCookieName, out var cookie) && Enum.TryParse<OperatorRole>(cookie, true, out var fromCookie))
             return fromCookie;
 
         return null;

@@ -2,7 +2,7 @@ namespace MerchantDeviceManager.Web.Services;
 
 public class TenantContext : ITenantContext
 {
-    private const string ItemsKey = "CurrentTenantId";
+    private const string ItemsKey = "CurrentTenantId"; // Must match TenantResolutionMiddleware
 
     public TenantContext(IHttpContextAccessor httpContextAccessor)
     {

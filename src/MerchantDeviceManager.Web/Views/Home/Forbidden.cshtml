@@ -1,0 +1,10 @@
+@{
+    ViewData["Title"] = "Access Denied";
+    var message = ViewData["Message"] as string ?? "You do not have permission to perform this action.";
+}
+
+<div class="alert alert-warning">
+    <h2>Access Denied</h2>
+    <p>@message</p>
+    <p><a asp-controller="Merchants" asp-action="Index" class="btn btn-primary">Switch Merchant / Role</a></p>
+</div>
