@@ -51,7 +51,12 @@ using (var scope = app.Services.CreateScope())
     await MerchantDeviceSeeder.SeedAsync(db);
 }
 
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(options => options.SwaggerEndpoint("/swagger/v1/swagger.json", "MerchantDeviceManager API v1"));
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
 }
@@ -61,6 +66,7 @@ app.UseRouting();
 
 app.UseAuthorization();
 
+app.MapControllers();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

@@ -85,6 +85,15 @@ SerialNumber is unique per merchant. Document is unique globally.
 
 **Headers:** `X-Tenant-Id` (merchant GUID), `X-Role` (Admin, Support, or Viewer). Errors return ProblemDetails (RFC 7807).
 
+## Tests (Etapa 7)
+
+- **Unit:** MerchantCacheService (cache miss/hit, invalidation) with real MemoryDistributedCache.
+- **Integration:** WebApplicationFactory with InMemory database; API endpoints (merchants, devices); 401, 403, 400, 404 scenarios.
+
+```bash
+dotnet test
+```
+
 ## Status
 
-**Etapa 6 complete.** REST API, Swagger, ProblemDetails. See `portfolio-notes.md` for the roadmap and execution history.
+**Etapa 7 complete.** Unit and integration tests. See `portfolio-notes.md` for the roadmap and execution history.
