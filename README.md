@@ -8,7 +8,7 @@ MerchantDeviceManager is an MVC portal for managing **merchants** and **POS devi
 
 **Use case:** Back-office for a fintech or acquirer: each merchant has terminals (POS devices); operators have different roles (admin, support, viewer).
 
-**Planned tech:** .NET 8, ASP.NET Core MVC, multi-tenant, roles, Redis (cache).
+**Tech:** .NET 8, ASP.NET Core MVC, multi-tenant, roles, Redis (cache), REST API.
 
 ## Architecture
 
@@ -41,7 +41,10 @@ MerchantDeviceManager is an MVC portal for managing **merchants** and **POS devi
 dotnet run --project src/MerchantDeviceManager.Web
 ```
 
-Open http://localhost:5000 (or the port shown). Select a merchant (tenant), then manage devices. Use "Switch Merchant" to change tenant.
+Open http://localhost:5266 (or the port shown). Select a merchant (tenant), then manage devices. Use "Switch Merchant" to change tenant.
+
+- **Swagger UI:** http://localhost:5266/swagger (Development only)
+- **REST API:** `/api/v1/merchants`, `/api/v1/devices` — see API section below.
 
 ## Multi-tenant (Etapa 3)
 
@@ -66,8 +69,22 @@ Open http://localhost:5000 (or the port shown). Select a merchant (tenant), then
 
 SerialNumber is unique per merchant. Document is unique globally.
 
+## Redis cache (Etapa 5)
+
+- **IDistributedCache:** Redis when `ConnectionStrings:Redis` is set (e.g. `localhost:6379`); in-memory otherwise.
+- **IMerchantCacheService:** Caches merchant list (5 min TTL) and merchant names; invalidation on device create.
+
+## REST API (Etapa 6)
+
+| Endpoint | Method | Headers | Description |
+|----------|--------|---------|-------------|
+| `/api/v1/merchants` | GET | — | List merchants (tenant selection) |
+| `/api/v1/devices` | GET | X-Tenant-Id | List devices for tenant |
+| `/api/v1/devices` | POST | X-Tenant-Id, X-Role (Admin/Support) | Create device |
+| `/api/v1/devices/{id}` | GET | X-Tenant-Id | Get device by ID |
+
+**Headers:** `X-Tenant-Id` (merchant GUID), `X-Role` (Admin, Support, or Viewer). Errors return ProblemDetails (RFC 7807).
+
 ## Status
 
-**Etapa 4 complete.** Role-based access (Admin, Support, Viewer). Next: Redis cache.
-
-See `portfolio-notes.md` for the roadmap and execution history.
+**Etapa 6 complete.** REST API, Swagger, ProblemDetails. See `portfolio-notes.md` for the roadmap and execution history.

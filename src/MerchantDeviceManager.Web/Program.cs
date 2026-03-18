@@ -27,6 +27,18 @@ builder.Services.AddDbContext<MerchantDeviceDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=merchantdevices.db"));
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddProblemDetails();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "MerchantDeviceManager API",
+        Version = "v1",
+        Description = "REST API for merchant and device management. Back-office fintech/POS. Requires X-Tenant-Id for device endpoints; X-Role (Admin/Support) for create."
+    });
+    options.OperationFilter<MerchantDeviceManager.Web.Api.SwaggerTenantHeaderOperationFilter>();
+});
 
 var app = builder.Build();
 
