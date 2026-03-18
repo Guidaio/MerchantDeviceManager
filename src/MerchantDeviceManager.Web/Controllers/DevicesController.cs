@@ -13,12 +13,14 @@ public class DevicesController : Controller
     private readonly MerchantDeviceDbContext _db;
     private readonly ITenantContext _tenant;
     private readonly IRoleContext _role;
+    private readonly IMerchantCacheService _cache;
 
-    public DevicesController(MerchantDeviceDbContext db, ITenantContext tenant, IRoleContext role)
+    public DevicesController(MerchantDeviceDbContext db, ITenantContext tenant, IRoleContext role, IMerchantCacheService cache)
     {
         _db = db;
         _tenant = tenant;
         _role = role;
+        _cache = cache;
     }
 
     /// <summary>
@@ -37,8 +39,9 @@ public class DevicesController : Controller
             .Select(d => new DeviceListModel(d.Id, d.SerialNumber, d.Model ?? "-", d.Status.ToString()))
             .ToListAsync(ct);
 
-        var merchant = await _db.Merchants.AsNoTracking().FirstAsync(m => m.Id == merchantId, ct);
-        ViewData["MerchantName"] = merchant.Name;
+        var merchantName = await _cache.GetMerchantNameAsync(merchantId,
+            async () => (await _db.Merchants.AsNoTracking().FirstOrDefaultAsync(m => m.Id == merchantId, ct))?.Name, ct);
+        ViewData["MerchantName"] = merchantName ?? "Merchant";
         ViewData["CanCreate"] = _role.CanCreate;
         ViewData["CanDelete"] = _role.CanDelete;
 
@@ -52,9 +55,10 @@ public class DevicesController : Controller
         if (!_tenant.HasTenant)
             return RedirectToAction(nameof(MerchantsController.Index), "Merchants");
 
-        var merchant = await _db.Merchants.AsNoTracking()
-            .FirstAsync(m => m.Id == _tenant.CurrentMerchantId!.Value, ct);
-        ViewData["MerchantName"] = merchant.Name;
+        var merchantId = _tenant.CurrentMerchantId!.Value;
+        var merchantName = await _cache.GetMerchantNameAsync(merchantId,
+            async () => (await _db.Merchants.AsNoTracking().FirstOrDefaultAsync(m => m.Id == merchantId, ct))?.Name, ct);
+        ViewData["MerchantName"] = merchantName ?? "Merchant";
         return View(new CreateDeviceModel());
     }
 
@@ -87,6 +91,8 @@ public class DevicesController : Controller
 
         _db.Devices.Add(device);
         await _db.SaveChangesAsync(ct);
+
+        await _cache.InvalidateMerchantListAsync(ct);
 
         return RedirectToAction(nameof(Index));
     }
